@@ -1,4 +1,4 @@
-#!/usr/bin/env
+#!/usr/bin/env python
 import numpy, ss_plotting
 from ss_plotting.make_plots import plot
 import matplotlib.pyplot as plt
