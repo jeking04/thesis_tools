@@ -30,6 +30,7 @@ if __name__=='__main__':
 
     # Generate the random paths
     G = PathGraph()
+    G.set_goal_region((.25, 0.), radius=0.1)
     node_id = 1
     for pidx in range(num_sampled_paths):
         path = [start_node]
