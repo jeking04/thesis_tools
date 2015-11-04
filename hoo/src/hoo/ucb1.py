@@ -1,4 +1,4 @@
-#!/usb/bin/env python
+#!/usr/bin/env python
 
 class UCBNode(object):
     def __init__(self, R):
@@ -24,6 +24,9 @@ class UCB1(object):
         bins = R.get_bins(num_bins)
         self.nodes = [UCBNode(b) for b in bins]
 
+    def __str__(self):
+        return 'UCB1'
+
     def run(self, n):
         idx, val = max(enumerate([node.getUCBVal(n) for node in self.nodes]),
                        key=lambda v: v[1])
@@ -34,5 +37,5 @@ class UCB1(object):
         b.N += 1
         b.Y += [y]
 
-        return y
+        return x, y
         

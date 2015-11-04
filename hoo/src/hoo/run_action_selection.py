@@ -31,9 +31,9 @@ class SingleDimension(Range):
 
 def rfunc(x):
     import scipy.stats
-    return scipy.stats.norm(0.2, 0.1).pdf(x)
+    return scipy.stats.norm(0.5, 0.2).pdf(x)
     
-def visualize(root):
+def visualize_hoo(root):
         import networkx as nx
         import matplotlib.pyplot as plt
         G = nx.DiGraph()
@@ -61,11 +61,38 @@ def _recursive_visualize(node, G, d):
             G.add_edge(node, n)
     return node, d
 
+def visualize(xpoints, R, title=None):
+    import matplotlib.pyplot as plt
+    import numpy
+
+    # Function value
+    xvals = numpy.arange(0., 1., 0.005)
+    rvals = [ rfunc(x) for x in xvals]
+    plt.fill_between(xvals, 0, rvals, facecolor='gray', lw=0,  alpha=0.2)
+
+    plt.hold(True)
+
+    # Bins
+    bins = R.get_bins(10)
+    endpts = [b.min_val for b in bins]
+    endpts += [bins[-1].max_val]
+    plt.plot(endpts, [0. for _ in endpts], '+', color='blue', markersize=10)
+
+    # Actual sampled points
+    plt.plot(xpoints, [0. for _ in xpoints], 'o', markersize=10, color='gray')
+    #plt.axis('off')
+    if title is not None:
+        plt.title(title)
+    plt.ylim([-1., max(rvals)+0.1])
+
+    plt.show()
+
 if __name__ == '__main__':
 
     import math
     from hoo import HOO
     from ucb1 import UCB1
+    from gps import GPS
 
     R = SingleDimension(0., 1.)
     alpha = 2.
@@ -74,15 +101,19 @@ if __name__ == '__main__':
 
     hoo = HOO(R, rfunc, row, v1)
     ucb = UCB1(R, rfunc, 10)
+    gps = GPS(R, rfunc)
+
+    algos = [hoo, ucb, gps]
+
+    for idx, a in enumerate(algos):
+        reward = 0
+        xvals = []
+        for n in range(300):
+            x, r = a.run(n)
+            reward += r
+            xvals += [x]
+
+        print '%s Total Reward: %0.3f' % (str(a), reward)
+        visualize(xvals, R, title=str(a))
+        
     
-    reward_hoo = 0
-    reward_ucb = 0
-    for n in range(300):
-        reward_hoo += hoo.run(n)
-        reward_ucb += ucb.run(n)
-
-    print 'HOO Total Reward: %0.3f' % reward_hoo
-    print 'UCB Total Reward: %0.3f' % reward_ucb
-
-    visualize(hoo.root)
-

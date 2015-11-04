@@ -58,6 +58,9 @@ class HOO(object):
         self.row = row
         self.v1 = v1
 
+    def __str__(self):
+        return 'HOO'
+
     def run(self, n):
         """
         @param n The round
@@ -72,15 +75,15 @@ class HOO(object):
             y = self.rfunc(x)
             node.N = 1
             node.Y = [y]
-            return y
+            return x, y
 
         children = node.getChildren()        
         idx,val = max(enumerate([c.getBVal(n, self.row, self.v1) for c in children]), 
                       key=lambda v: v[1])
-        y = self._recursive_search(children[idx], n)
+        x, y = self._recursive_search(children[idx], n)
 
         # Update the node parameters
         node.N += 1
         node.Y += [ y ]
 
-        return y
+        return x, y
