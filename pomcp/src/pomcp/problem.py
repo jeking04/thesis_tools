@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import logging, numpy
-from abc import abstractmethod
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
@@ -28,52 +28,13 @@ def execute_action(state, action):
     @return The end state
     """
     return state + numpy.array([numpy.cos(action), numpy.sin(action)])
-
-class Action(object):
-    @abstractmethod
-    def get_action(self, node):
-        pass
-
-class UCB1(Action):
-
-    def __init__(self, min_val, max_val, num_bins, c):
-        
-        bin_size = (max_val - min_val) / num_bins
-        self.bins = {}
-        for idx in range(num_bins):
-            self.bins[idx] = (min_val, min_val+bin_size)
-            min_val += bin_size
-
-        self.c = c
-
-    def get_action(self, node):
-        """
-        Compute UCB1 score for each action
-        and select the maximum
-        """
-        import operator, random
-        
-        values = { k: float('inf') for k in self.bins.keys() }
-        visits = node.get_num_visits()
-
-        for k in self.bins.keys():
-            child_node = node.get_child(k)
-            if child_node is not None and child_node.get_num_visits() > 0:
-                child_visits = child_node.get_num_visits()
-                values[k] = child_node.get_value() + self.c*numpy.sqrt(numpy.log(visits)/child_visits)
-        aid = max(values.iteritems(), key=operator.itemgetter(1))[0]
-
-        # Now uniformly draw an action from the bin
-        b = self.bins[aid]
-        a = random.uniform(b[0], b[1])
-        return aid, a
             
 
 if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(description="Example pomcp problem")
-    parser.add_argument("--method", choices=['ucb1'], default='ucb1',
+    parser.add_argument("--method", choices=['ucb1', 'gps'], default='ucb1',
                         help="The action selection method to use")
     parser.add_argument("--c", type=float, default=0.,
                         help="The UCB constant")
@@ -85,7 +46,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.method == 'ucb1':
+        from action import UCB1
         action = UCB1(0., 2.*numpy.pi, 4, args.c)
+    elif args.method == 'gps':
+        from action import GPS
+        action = GPS(0., 2.*numpy.pi)
 
     from pomcp import POMCP
     p = POMCP(get_initial_state, reward, execute_action, action.get_action,
